@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  backend:
+    build: .
+    container_name: network-visualizer-backend
+    ports:
+      - "8000:8000"
+    cap_add:
+      - NET_RAW   # Needed for scapy to sniff packets
+    network_mode: host  # Allows access to host network interfaces for sniffing
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
