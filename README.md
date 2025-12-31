@@ -1,217 +1,91 @@
-# Network Packet Visualizer
+# Network-Visualizer: A Real-Time Local Network Traffic Visualization System
 
-*A real-time, Watch Dogs–inspired network activity visualizer built with FastAPI, Scapy, Next.js, D3.js, and Docker.*
+## Abstract
+**Network-Visualizer** is a local network traffic visualization system that passively observes packets on an authorized network segment and renders inferred device-to-device interactions in an interactive graph-based dashboard. The software is organized as (i) a Python backend for capture and aggregation, and (ii) a web frontend for interactive visualization. The primary aim is to support exploratory analysis of local connectivity patterns and traffic flows through a reproducible, extensible implementation.
 
----
+> **Ethical / legal note:** Packet capture can expose sensitive information. Use this project only on networks you own or where you have explicit authorization.
 
-## Project Purpose & Background
 
-**Inspiration:**
-This project is inspired by the *Watch Dogs* video game series, where players can “see” the digital world around them—mapping devices, tracking connections, and visualizing real-time data flows in a slick, hacker-themed UI.
-The goal here is to **bring that experience to real life**: to passively “map” your local network and show all the devices and their interactions, live.
 
-**Why build this?**
+## Research Motivation
+Interpreting network behavior from raw packet streams is cognitively demanding due to volume, heterogeneity, and temporal dynamics. Visual analytics—particularly graph representations—can reduce this burden by mapping communicating entities to nodes and observed exchanges to edges. This project operationalizes that idea for local subnet monitoring: it collects packet-derived interaction evidence and presents it as a continuously updating network graph suitable for exploratory inspection.
 
-* For fun, learning, and to get a “hacker” perspective on your own digital space.
-* To improve your understanding of networking, web backends, and real-time web dashboards.
-* To create an awesome, portfolio-worthy project that’s as fun to use as it is to build.
 
----
 
-## Tech Stack & Why We Chose It
+## System Overview
+The repository comprises two major components:
 
-* **Python + Scapy:**
-  Scapy is a powerful, scriptable packet sniffer—easy to use for capturing and analyzing network traffic in real time.
-* **FastAPI:**
-  Modern, async-friendly Python web framework. It exposes APIs for the frontend to fetch real-time device/traffic data.
-* **Next.js (React):**
-  Provides a fast, modular, component-based frontend with great developer experience and easy styling/theming.
-* **D3.js:**
-  Best-in-class JavaScript library for dynamic, interactive data visualizations—used here to create the force-directed “network map.”
-* **Tailwind CSS:**
-  Utility-first CSS framework for quickly building a dark, neon-styled “hacker” interface.
-* **Docker (+ Docker Compose):**
-  Containerizes the backend (and optionally the frontend), making setup and deployment reliable across different machines.
+### 1) Backend (Python)
+- **Role:** Passive packet capture and lightweight flow/event summarization exposed via an HTTP API.
+- **Key files (root):**
+  - `main.py` — FastAPI application and API endpoints
+  - `sniffer.py` — packet capture / tracking logic
+  - `requirements.txt` — Python dependencies
+  - `Dockerfile` — container build recipe
 
----
+### 2) Frontend (Next.js)
+- **Role:** Interactive visualization (e.g., force-directed graph + event/log view).
+- **Location:** `network-visualizer-frontend/`
 
-## Features
 
-* **Passive network traffic sniffing** (no packets sent)
-* **Real-time discovery** of devices (by IP address)
-* **Mapping of live network connections** between devices
-* **Interactive, animated graph** showing network structure and activity
-* **Terminal-style log** for packet history
 
----
-
-## Project Structure
-
-```
-/network-visualizer-backend    # FastAPI + Scapy backend (in Docker)
-  |- main.py                   # FastAPI app, API endpoints
-  |- sniffer.py                # Scapy sniffer, device/traffic tracker
-  |- requirements.txt
-  |- Dockerfile
-
-/network-visualizer-frontend   # Next.js frontend (D3.js, Tailwind)
-  |- app/
-      |- components/
-          |- NetworkGraph.js
-          |- TerminalLog.js
-      |- page.js
-  |- package.json
-  |- tailwind.config.js
+## Repository Layout
+```text
+.
+├── main.py
+├── sniffer.py
+├── requirements.txt
+├── Dockerfile
+└── network-visualizer-frontend/
 ```
 
----
 
-## Setup & Usage
 
-### 1. Clone the Repo
+## Reproducibility & Setup
 
-```sh
-git clone https://github.com/yourname/network-packet-visualizer.git
-cd network-packet-visualizer
+### Prerequisites
+- Docker (recommended for consistent environment + capabilities)
+- Node.js + npm (for the frontend)
+- Local administrator/root privileges may be required for packet capture.
+
+### 1) Clone
+```bash
+git clone https://github.com/artorias961/Network-Visualizer.git
+cd Network-Visualizer
 ```
 
----
-
-### 2. Backend (FastAPI + Scapy in Docker)
-
-**Requirements:**
-
-* Docker installed
-* Linux is preferred (network sniffing in Docker works best)
-
-**Build and run the backend:**
-
-```sh
-cd network-visualizer-backend
+### 2) Backend: Build + Run (Docker)
+```bash
 docker build -t network-visualizer-backend .
 docker run --cap-add=NET_RAW --network=host -p 8000:8000 network-visualizer-backend
 ```
 
-Or, with **Docker Compose** (recommended):
-
-```sh
-docker compose up --build
-```
-
-*(Make sure your **`** includes **`** and **\`\`** for the backend service.)*
-
----
-
-### 3. Frontend (Next.js App)
-
-**Setup:**
-
-```sh
+### 3) Frontend: Install + Run
+```bash
 cd network-visualizer-frontend
 npm install
-```
-
-**Start development server:**
-
-```sh
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view the dashboard.
+Then open `http://localhost:3000`.
 
-**(Optional) Dockerize the frontend:**
 
-* Add a `Dockerfile` to your frontend and update `docker-compose.yaml` to run both frontend and backend together.
 
----
+## Methodological Notes
+The visualization depicts observed communication evidence rather than ground-truth topology. Visibility depends on interface placement, OS permissions, and traffic characteristics.
 
-### 4. How It Works
 
-* The **backend** runs continuously, sniffing all visible network traffic.
-  It exposes API endpoints at:
 
-  * `GET /devices` — returns the set of detected devices (IPs)
-  * `GET /traffic` — returns the most recent packet flows (source IP, dest IP, protocol, timestamp)
-* The **frontend** polls these endpoints every 2 seconds, building:
+## Limitations
+- Passive capture is constrained by system permissions.
+- Visualization reflects observations, not authenticated device identity.
+- Scalability may require aggregation or streaming improvements.
 
-  * An **animated network graph** (with D3.js) showing devices as nodes and connections as lines.
-  * A **terminal-style log** listing recent packet events.
 
----
 
-## Useful Commands
+## Suggested Extensions
+- WebSocket or SSE-based streaming
+- Temporal aggregation and weighted edges
+- MAC/vendor inference via ARP and OUI lookup
+- Anomaly detection heuristics
 
-### Backend:
-
-* Build Docker image:
-
-  ```sh
-  docker build -t network-visualizer-backend .
-  ```
-* Run Docker container (standalone):
-
-  ```sh
-  docker run --cap-add=NET_RAW --network=host -p 8000:8000 network-visualizer-backend
-  ```
-* With Docker Compose (from project root):
-
-  ```sh
-  docker compose up --build
-  ```
-* API Endpoints:
-
-  * [http://localhost:8000/devices](http://localhost:8000/devices)
-  * [http://localhost:8000/traffic](http://localhost:8000/traffic)
-
-### Frontend:
-
-* Install dependencies:
-
-  ```sh
-  npm install
-  ```
-* Start dev server:
-
-  ```sh
-  npm run dev
-  ```
-* Visit: [http://localhost:3000](http://localhost:3000)
-
----
-
-## Why These Libraries & Approaches?
-
-* **Scapy**: Easiest way to sniff and analyze packets in Python, perfect for a passive monitoring tool.
-* **FastAPI**: Fast, modern, and async—great for live data APIs.
-* **Next.js + D3.js**: Powerful combo for real-time web apps; easy to build, style, and scale up for features like alerts or deeper analytics.
-* **Tailwind**: Lets you create a “hacker” aesthetic with minimal CSS headaches.
-* **Docker**: Ensures everyone can run the project exactly the same way, regardless of OS/setup.
-
----
-
-## Contributing / Expanding
-
-* Add protocol or port filters to the sniffer for deeper analysis
-* Add authentication to the frontend/backend for private deployments
-* Expand graph with device types, hostnames, or vendor lookups
-* Add WebSocket support for real “push” updates
-* Polish the UI with more Watch Dogs–style themes
-
----
-
-## Disclaimer
-
-This project is for educational and ethical use only.
-**Sniffing network traffic on networks you do not own or have explicit permission to monitor may be illegal.**
-Use responsibly and only on your own networks.
-
----
-
-## Credits
-
-* Inspired by Ubisoft’s *Watch Dogs* series
-* Built with Python, FastAPI, Scapy, React, Next.js, D3.js, and Tailwind CSS
-
----
-
-*Enjoy visualizing your own network—like a hacker protagonist in your own game!*
