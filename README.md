@@ -1,4 +1,5 @@
 # Network-Visualizer: A Real-Time Local Network Traffic Visualization System
+<img width="2048" height="1365" alt="image" src="https://github.com/user-attachments/assets/21413c88-2bfa-45a7-8880-558fb2466f7e" />
 
 ## Abstract
 **Network-Visualizer** is a local network traffic visualization system that passively observes packets on an authorized network segment and renders inferred device-to-device interactions in an interactive graph-based dashboard. The software is organized as (i) a Python backend for capture and aggregation, and (ii) a web frontend for interactive visualization. The primary aim is to support exploratory analysis of local connectivity patterns and traffic flows through a reproducible, extensible implementation.
